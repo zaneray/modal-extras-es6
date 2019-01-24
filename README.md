@@ -103,6 +103,55 @@ Specify a data-toggle attribute of modal-image to load the image in the href of 
 <a href="http://www.zaneray.com/proto/images/flatheadsunset.jpg" data-toggle="modal-image">Open horizontal Image Modal </a>
 ```
 
+#### Additional Data Attributes for Images
+
+Creating a gallery with prev/next links.  When a data-gallery link is clicked, spans will be injected in to the bottom of the modal-content
+and all links on the page with the same data-gallery value will be cycled through when clicked or swiped
+
+```html
+<span class='global-arrow prev-arrow'></span><span class='global-arrow next-arrow'></span>
+```
+
+Attribute | Example
+----------|-------------
+data-gallery | modal-gallery-example
+data-caption | this image has a caption
+data-link | http://www.google.com
+
+```html
+<a href="http://www.zaneray.com/proto/images/two-med.jpg" data-toggle="modal-image" data-gallery="modal-gallery-example" data-caption="This image has a caption">Open Image as part of a Modal Gallery</a>
+<a href="http://www.zaneray.com/proto/images/fireotm.jpg" data-toggle="modal-image" data-gallery="modal-gallery-example" data-caption="This image has a caption and link" data-link="www.zaneray.com">Open Image as part of a Modal Gallery</a><
+<a href="http://www.zaneray.com/proto/images/flatheadsunset.jpg" data-toggle="modal-image" data-gallery="modal-gallery-example">Open Image as part of a Modal Gallery</a>
+```
+
+#### Instagram details for an image (data-instagram)
+
+When data-instagram is found on the link, instead of injecting the data-caption, it will use the following data attributes to
+create HTML that can be styled.
+* data-userphoto
+* data-username
+* data-location
+* data-likes
+* data-caption
+* data-link
+
+The following HTML will be appended to the modal-content element
+
+```html
+<div class='modal-image-instagram-container'>
+  <div class='user-section'>
+    <img src='${el.dataset.userphoto}' class='instagram-userphoto' />
+    <div class='user-info'>
+      <span class='username'>${el.dataset.username}</span>
+      <span class='location'>${el.dataset.location}</span>
+    </div>
+    <a href=${el.dataset.link} class='btn btn-sm btn-instagram' target='_blank'>Follow</a>
+  </div>
+  <span class='image-likes'>${el.dataset.likes}</span>
+  <span class='image-caption'>${el.dataset.caption}</span>
+</div>
+```
+
 ### Modal Videos
 
 Specify a data-toggle of modal-video to dynamically load the video. It is required to specify a data-key as well as a data-source which at the moment only includes Youtube and Vimeo. It is recommended to make the href a link to the URL of the video for Accessbility reasons.

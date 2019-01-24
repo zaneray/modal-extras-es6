@@ -50,6 +50,8 @@ function generateModalTemplate(html, className){
   $(modal).modal().on('hidden.bs.modal', function() {
     getModal().remove();
   });
+
+  document.removeEventListener('click.modal');
 }
 
 function getModal(){
@@ -83,25 +85,25 @@ function bindActions() {
       switch (modalType){
         case 'modalhtml': {
           evt.preventDefault();
-          modalhtml(evt.target);
+          modalHtml(evt.target);
           evt.stopPropagation();
           break;
         }
         case 'modalajax': {
           evt.preventDefault();
-          modalajax(evt.target);
+          modalAjax(evt.target);
           evt.stopPropagation();
           break;
         }
         case 'modalvideo': {
           evt.preventDefault();
-          modalvideo(evt.target);
+          modalVideo(evt.target);
           evt.stopPropagation();
           break;
         }
         case 'modalimage': {
           evt.preventDefault();
-          modalimage(evt.target);
+          modalImage(evt.target);
           evt.stopPropagation();
           break;
         }
@@ -141,7 +143,7 @@ function closeModalOnEscape() {
  * 
  * @param {*} el the HTML object that was clicked
  */
-function modalhtml(el){
+function modalHtml(el){
   let html = '';
   const id = el.dataset.id;
   const clazz = el.dataset.class || '';
@@ -160,7 +162,7 @@ function modalhtml(el){
  * 
  * @param {*} el the HTML object that was clicked
  */
-function modalajax(el){
+function modalAjax(el){
   let pageURL = el.href;
   const clazz = el.dataset.class || '';
   const contentId = el.dataset.id;
@@ -201,7 +203,7 @@ function modalajax(el){
  *  
 * @param {*} el the HTML object that was clicked
  */
-function modalvideo(el) {
+function modalVideo(el) {
   const clazz = el.dataset.class || '';
   const videoSource = el.dataset.source;
   const videoKey = el.dataset.key;
@@ -225,27 +227,175 @@ function modalvideo(el) {
 }
 
 /**
- * Content is image(s) on the page or
+ * Content is image(s) by a static img src or 
  * coming from Instagram
  * 
  * @param {*} el the HTML object that was clicked
  */
-function modalimage(el) {
+function modalImage(el) {
   const $this = $(el);
   const clazz = el.dataset.class || '';
+
+  // The element we'll load in to the modal
+  let inject;
+
   const img = new Image();
   img.title = el.title || '';
   img.id = 'modal-image';
   img.classList.add('modal-image');
+
+  // When the image is done loading, remove the modal-loading class
   img.addEventListener('load', function() {
     getModal().classList.remove('modal-loading');
   }, false);
+
+  // set the scr, which will fire the Load event on the image.
   img.src = el.href;
 
-  generateModalTemplate(img, 'modal-image-wrapper modal-loading ' + clazz);
-  
-  /* TODO add more functionality */
+  // If we have data-link wrap the img with an anchor
+  if ('undefined' !== typeof(el.dataset.link)) {    
+    inject = document.createElement('a');
+    inject.href = el.dataset.link;
+    inject.classList.add('modal-image-link');
+    inject.target = '_blank';
+    inject.appendChild(img);
+  }
+  else {
+    inject = img;
+  }
 
+  // Load the modal
+  generateModalTemplate(inject, 'modal-image-wrapper modal-loading ' + clazz);
+  
+  // If we're an instagram image, add the user/description content
+  if ('undefined' !== typeof(el.dataset.instagram)){
+    const htmlText = `<div class='modal-image-instagram-container'><div class='user-section'><img src='${el.dataset.userphoto}' class='instagram-userphoto' /><div class='user-info'><span class='username'>${el.dataset.username}</span><span class='location'>${el.dataset.location}</span></div><a href=${el.dataset.link} class='btn btn-sm btn-instagram' target='_blank'>Follow</a></div><span class='image-likes'>${el.dataset.likes}</span><span class='image-caption'>${el.dataset.caption}</span></div>`;
+    getModalContent().insertAdjacentHTML('beforeend', htmlText);
+  }
+  // else, if we have a caption, add that HTML instead
+  else if ('undefined' !== typeof(el.dataset.caption)){
+    const htmlText = `<div class='modal-image-caption-wrapper'><span class='modal-image-caption'>${el.dataset.caption}</span></div>`;
+    getModalContent().insertAdjacentHTML('beforeend', htmlText);
+  }
+
+  // If we're a gallery, load up the rest of the images, inject
+  // the arrows and bind the click/swipe events.
+  if ('undefined' !== typeof(el.dataset.gallery)) {
+    const galleryName = el.dataset.gallery;
+    const galleryElements = document.querySelectorAll(`[data-gallery='${galleryName}']`);
+    const galleryElementCount = galleryElements.length - 1;
+    const galleryImageArray = [];
+    const galleryCaptionArray = [];
+    const galleryLinkArray = [];
+    let currentImageLink = el.href;
+
+    galleryElements.forEach(element => {
+      galleryImageArray.push(element.href);
+      galleryCaptionArray.push(element.dataset.caption);
+      galleryLinkArray.push(element.dataset.link);
+    });
+
+    getModalContent().insertAdjacentHTML('beforeend', "<span class='global-arrow prev-arrow'>Go Back</span><span class='global-arrow next-arrow'>Go Forward</span>");
+
+    const goToNextImage = function(direction){
+      const modalImage = getModalContent().querySelector(".modal-image");
+      let currentImageSrc = modalImage.src;
+      let currentImageIndex = galleryImageArray.indexOf(currentImageSrc);
+      let nextImageIndex = 0;
+
+      switch (direction){
+        case 'next': {
+          nextImageIndex = currentImageIndex + 1;
+          if(nextImageIndex > galleryElementCount){
+            nextImageIndex = 0;
+          }
+        }
+        default: {
+          nextImageIndex = currentImageIndex - 1;
+          if(nextImageIndex < 0){
+            nextImageIndex = galleryElementCount;
+          }
+        }
+      }
+
+      const nextImageSrc = galleryImageArray[nextImageIndex];
+      const nextImageCaption = galleryCaptionArray[nextImageIndex];
+      const nextImageLink = galleryLinkArray[nextImageIndex];
+
+      // check if next image has caption and/or link, and switch content accordingly
+      updateModalImageCaption(nextImageCaption);
+      updateModalImageLink(nextImageLink);
+
+      // swap out with the new image source
+      modalImage.src = nextImageSrc;
+    };
+
+    document.body.addEventListener('click', (event) => {
+      if (event.target !== event.currentTarget){
+        if (event.target.classList.contains('next-arrow')){
+          goToNextImage('next');
+        }
+        else if (event.target.classList.contains('prev-arrow')){
+          goToNextImage('prev');
+        }
+      } 
+    });
+
+    // can we do this without jQuery plugin??
+    try {
+      $('.modal-content').swipe({
+        swipeLeft:function(){
+            goToNextImage('next');    
+        },
+        swipeRight:function(){
+            goToNextImage('prev');
+        }
+      });
+    }
+    catch(e){
+      console.error(e);
+    }
+
+  }
+
+}
+
+function updateModalImageCaption( caption ){
+  const captionWrapper = getModalContent().querySelector('.modal-image-caption-wrapper');
+  if ('undefined' !== typeof(caption)) {
+    if ( captionWrapper ) {
+      captionWrapper.text = caption;
+    }
+    else {
+      const htmlText = `<div class='modal-image-caption-wrapper'><span class='modal-image-caption'>${caption}</span></div>`;
+      getModalContent().insertAdjacentHTML('beforeend', htmlText);
+    }
+  }
+  else if(captionWrapper){
+    captionWrapper.remove();
+  }
+}
+
+function updateModalImageLink( link ){
+  const imageLink = getModalContent().querySelector('.modal-image-link');
+  if ('undefined' !== typeof(link)) {
+    if ( imageLink ) {
+      imageLink.href = link;
+    }
+    else {
+      const imageNode = getModalContent().querySelector('.modal-image');
+      const newLink = document.createElement('a');
+      newLink.href = link;
+      newLink.classList.add('modal-image-link');
+      newLink.target = '_blank';
+      imageNode.parentNode.insertBefore(newLink, imageNode);
+      newLink.appendChild(imageNode);
+    }
+  }
+  else if(imageLink){
+    const modalImage = imageLink.firstChild;
+    imageLink.replaceWith(modalImage);
+  }
 }
 
 exports.onLoad = onLoad;
