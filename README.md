@@ -89,6 +89,12 @@ Optionally you can specify an id and the script will load the whole page and dis
 <a href="includes/ajax.html" data-toggle="modal-ajax" data-id="wrapper">Open Ajax Modal and inject with Element id="wrapper" from response</a>
 ```
 
+By default, the outerHTML of the wrapper is injected in to the modal.  You can change that to the innerHTML by adding data-unwrap="true"
+
+```html
+<a href="includes/ajax.html" data-toggle="modal-ajax" data-id="wrapper" data-unwrap="true">Open Ajax Modal and inject innerHTML of Element id="wrapper" from response</a>
+```
+
 ### Modal Images
 
 Specify a data-toggle attribute of modal-image to load the image in the href of an anchor link in a modal window.
