@@ -1,6 +1,6 @@
 {
   "name": "@zaneray/modal-extras",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Modal extras for bootstrap framework",
   "main": "dist/modal-extras.cjs.js",
   "module": "modal-extras.js",
