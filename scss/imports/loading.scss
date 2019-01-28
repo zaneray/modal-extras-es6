@@ -1,0 +1,52 @@
+
+/* LOADING animation */
+@-moz-keyframes loading {
+  0% {
+    -moz-transform: rotate(0deg);
+  }
+  100% {
+    -moz-transform: rotate(360deg);
+  };
+}
+@-webkit-keyframes loading {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  };
+}
+@keyframes loading {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  };
+}
+/* END LOADING animation */
+
+//custom modal extras mixins
+
+@mixin loading($size: 2em, $border: 3px, $color:$gray-light, $opacity: 70%) {
+    cursor: wait;
+    position: relative;
+    &:after {
+        content: '';
+        background-color: rgba(0,0,0,0);
+        border-radius: $size;
+        animation: loading .8s infinite linear;
+        display: block;
+        border: $border solid $color;
+        border-top: $border solid fadeout($color, $opacity);
+        border-left: $border solid fadeout($color, $opacity);
+        width: $size;
+        height: $size;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: $loading-z-index; 
+        margin-top: (($size/2)*-1);
+        margin-left: (($size/2)*-1);
+    }
+}
