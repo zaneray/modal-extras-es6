@@ -2,6 +2,7 @@
 //z-index vars
 $modal-z-index: 500;
 $mixin-loading-animation-after:     $modal-z-index + 1;
+$loading-z-index: 1000;
 
 //standard bootstrap like variables
 $font-size-base:                    1rem;
