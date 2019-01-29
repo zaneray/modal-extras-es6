@@ -295,7 +295,7 @@ function modalImage(el) {
       galleryLinkArray.push(element.dataset.link);
     });
 
-    getModalContent().insertAdjacentHTML('beforeend', "<span class='global-arrow prev-arrow'>Go Back</span><span class='global-arrow next-arrow'>Go Forward</span>");
+    getModalContent().insertAdjacentHTML('beforeend', "<span class='global-arrow prev-arrow'></span><span class='global-arrow next-arrow'></span>");
 
     const goToNextImage = function(direction){
       const modalImage = getModalContent().querySelector(".modal-image");
